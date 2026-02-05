@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import './index.css';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -16,8 +16,24 @@ const App = () => {
   const [shortUrl, setShortUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [isDownloading, setIsDownloading] = useState(false);
 
-  const baseURL = process.env.REACT_APP_BASE_URL
+  useEffect(() => {
+    if (window.electronAPI) {
+      window.electronAPI.onDownloadProgress((percent) => {
+        setIsDownloading(true);
+        setProgress(percent);
+      });
+
+      window.electronAPI.onUpdateFinished(() => {
+        setIsDownloading(false);
+        alert("Update ready! The app will restart to apply changes.");
+      });
+    }
+  }, []);
+
+  const baseURL = process.env.REACT_APP_BASE_URL;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -44,20 +60,39 @@ const App = () => {
       setUrl(text);
     } catch (err) {
       console.error('Failed to read clipboard contents: ', err);
-      alert("Please allow clipboard permissions to use this feature.");
     }
   };
 
   const handleGoToLink = () => {
-    if (shortUrl) {
-      if (shortUrl) {
-        window.electronAPI.openInBrowser(shortUrl);
-      };
+    if (shortUrl && window.electronAPI) {
+      window.electronAPI.openInBrowser(shortUrl);
     }
   };
 
+  if (isDownloading) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center p-8">
+        <div className="text-center w-full max-w-sm">
+          <ArrowPathIcon className="h-12 w-12 text-blue-500 animate-spin mx-auto mb-6" />
+          <h2 className="text-2xl font-bold text-slate-100 mb-2">Updating TrimIt</h2>
+          <p className="text-slate-400 mb-8 text-sm">Downloading the latest features...</p>
+          <div className="w-full h-3 bg-slate-800 rounded-full overflow-hidden border border-slate-700">
+            <motion.div 
+              className="h-full bg-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.5)]"
+              initial={{ width: 0 }}
+              animate={{ width: `${progress}%` }}
+            />
+          </div>
+          <p className="mt-4 text-blue-400 font-mono text-sm font-bold">{Math.round(progress)}%</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-4 text-slate-100 font-sans">
+    <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-4 text-slate-100 font-sans relative">
+      <div className="drag-region fixed top-0 left-0 w-full h-8 z-50" />
+
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden -z-10">
         <div className="absolute -top-24 -left-24 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl"></div>
         <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl"></div>
@@ -85,7 +120,7 @@ const App = () => {
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               required
-              className="w-full bg-slate-900/50 border border-slate-600 rounded-xl pl-4 pr-12 py-4 outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              className="w-full bg-slate-900/50 border border-slate-600 rounded-xl pl-4 pr-12 py-4 outline-none focus:ring-2 focus:ring-blue-500 transition-all no-drag"
             />
             <button
               type="button"
@@ -100,7 +135,7 @@ const App = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800 text-white font-semibold py-4 rounded-xl transition-all shadow-lg shadow-blue-900/20 flex items-center justify-center gap-2"
+            className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800 text-white font-semibold py-4 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2"
           >
             {loading ? <ArrowPathIcon className="h-5 w-5 animate-spin" /> : "Shorten URL"}
           </button>
@@ -123,7 +158,6 @@ const App = () => {
                 <button
                   onClick={handleGoToLink}
                   className="p-3 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-blue-400 transition-all"
-                  title="Open Link"
                 >
                   <ArrowTopRightOnSquareIcon className="h-5 w-5" />
                 </button>
@@ -131,7 +165,6 @@ const App = () => {
                 <button
                   onClick={copyToClipboard}
                   className={`p-3 rounded-lg transition-colors ${copied ? 'bg-emerald-500/20 text-emerald-400' : 'hover:bg-slate-800 text-slate-400'}`}
-                  title="Copy Link"
                 >
                   {copied ? <CheckIcon className="h-5 w-5" /> : <ClipboardIcon className="h-5 w-5" />}
                 </button>
