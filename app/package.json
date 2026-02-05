@@ -1,6 +1,6 @@
 {
   "name": "url-shortener",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "TrimIt - The smarter way to share links",
   "author": "Michael Timothy",
   "main": "main.js",
