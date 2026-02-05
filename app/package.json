@@ -1,0 +1,48 @@
+{
+  "name": "url-shortener",
+  "version": "1.0.0",
+  "description": "TrimIt - The smarter way to share links",
+  "author": "Michael Timothy",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "cd ../source-code && npm run build && cd ../app && shx rm -rf builder dist && shx mkdir builder && shx cp -r ../source-code/build/* builder && electron-builder --publish always"
+  },
+  "build": {
+    "appId": "com.michael.trimit",
+    "productName": "TrimIt",
+    "publish": [
+    {
+      "provider": "github",
+      "owner": "timmichael738", 
+      "repo": "trimit-desktop-app"
+    }
+  ],
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "icon": "assets/icon.ico",
+      "target": [
+        "nsis"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "shortcutName": "TrimIt"
+    },
+    "files": [
+      "**/*",
+      "builder/**/*"
+    ]
+  },
+  "devDependencies": {
+    "electron": "^39.2.7",
+    "electron-builder": "^26.4.0",
+    "shx": "^0.4.0"
+  },
+  "dependencies": {
+    "electron-is-dev": "^3.0.1"
+  }
+}

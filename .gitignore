@@ -1,0 +1,25 @@
+# Ignore node_modules in any directory level
+node_modules/
+**/node_modules/
+
+# Ignore environment files
+.env
+.env.*
+**/ .env
+**/ .env.*
+
+# Ignore build and distribution folders
+dist/
+build/
+builder/
+out/
+**/dist/
+**/build/
+
+# Ignore logs
+*.log
+npm-debug.log*
+
+# System files
+.vscode/
+.DS_Store
